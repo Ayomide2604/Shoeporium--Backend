@@ -1,8 +1,22 @@
 from django.contrib import admin
-from .models import Product, Collection, Cart, CartItem
+from .models import Product, Collection, Cart, CartItem, ProductImage
 from django.urls import reverse
 from django.utils.html import format_html
 # Register your models here.
+
+
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 1
+    fields = ['image', 'image_preview']
+    readonly_fields = ['image_preview']
+
+    def image_preview(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
+
+    image_preview.short_description = 'Image Preview'
 
 
 @admin.register(Product)
@@ -11,11 +25,12 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('collection', 'date_created')
     search_fields = ('name', 'description')
     list_select_related = ('collection',)
+    inlines = [ProductImageInline]
 
 
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'product_count')
+    list_display = ('name', )
     search_fields = ('name',)
 
 

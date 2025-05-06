@@ -1,17 +1,14 @@
 import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
+from cloudinary.models import CloudinaryField
+
 # Create your models here.
 User = get_user_model()
 
 
 class Collection(models.Model):
     name = models.CharField(max_length=255, unique=True)
-
-    def product_count(self):
-        return self.products.count()
-
-    product_count.short_description = "Number of Products"
 
     def __str__(self):
         return self.name
@@ -27,6 +24,15 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        'Product', related_name='images', on_delete=models.CASCADE)
+    image = CloudinaryField('image')
+
+    def __str__(self):
+        return f"Image for {self.product.name}"
 
 
 class Cart(models.Model):

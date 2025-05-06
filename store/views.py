@@ -1,6 +1,7 @@
 from rest_framework import viewsets
-from .models import Product, Collection, Cart, CartItem
-from .serializers import CollectionSerializer, ProductSerializer, CartSerializer, CartItemSerializer
+from .models import Product, Collection, Cart, CartItem, ProductImage
+from .serializers import CollectionSerializer, ProductSerializer, CartSerializer, CartItemSerializer, ProductImageSerializer
+from django.db.models import Prefetch
 
 # Create your views here.
 
@@ -11,8 +12,14 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.prefetch_related(
+        'images').select_related('collection').all()
     serializer_class = ProductSerializer
+
+
+class ProductImageViewSet(viewsets.ModelViewSet):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
 
 
 class CartViewSet(viewsets.ModelViewSet):
