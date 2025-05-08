@@ -66,3 +66,18 @@ class CartItem(models.Model):
 
     class Meta:
         unique_together = ("cart", "product")
+
+
+class Order(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    payment_status = models.CharField(max_length=20, default="Pending")
+    date_created = models.DateTimeField(auto_now_add=True)
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey('product', on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=8, decimal_places=2)

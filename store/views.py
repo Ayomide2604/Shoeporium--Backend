@@ -1,9 +1,10 @@
 from rest_framework import filters
 from rest_framework import viewsets
+from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
-from .models import Product, Collection, Cart, CartItem, ProductImage
-from .serializers import CollectionSerializer, ProductSerializer, CartSerializer, CartItemSerializer, ProductImageSerializer, AddCartItemSerializer, UpdateCartItemSerializer
+from .models import Product, Collection, Cart, CartItem, ProductImage, Order
+from .serializers import CollectionSerializer, ProductSerializer, CartSerializer, CartItemSerializer, ProductImageSerializer, AddCartItemSerializer, UpdateCartItemSerializer, OrderCreateSerializer, OrderSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .pagination import ProductPagination
@@ -70,3 +71,21 @@ class CartItemViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
         return {'cart_id': cart.id}
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Order.objects.all()
+        return Order.objects.filter(user=user)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return OrderCreateSerializer
+        return OrderSerializer
+
+    def get_serializer_context(self):
+        return {'request': self.request}
