@@ -1,7 +1,12 @@
+from rest_framework import filters
 from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticated
 from .models import Product, Collection, Cart, CartItem, ProductImage
-from .serializers import CollectionSerializer, ProductSerializer, CartSerializer, CartItemSerializer, ProductImageSerializer
-from django.db.models import Prefetch
+from .serializers import CollectionSerializer, ProductSerializer, CartSerializer, CartItemSerializer, ProductImageSerializer, AddCartItemSerializer, UpdateCartItemSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .pagination import ProductPagination
 
 # Create your views here.
 
@@ -15,6 +20,13 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related(
         'images').select_related('collection').all()
     serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend,
+                       filters.OrderingFilter, filters.SearchFilter]
+    filterset_fields = ['collection']
+    ordering_fields = ['price', 'name', 'date_created']
+    search_fields = ['name', 'description', 'collection__name']
+    ordering = ['-date_created']
+    pagination_class = ProductPagination
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):
@@ -23,10 +35,38 @@ class ProductImageViewSet(viewsets.ModelViewSet):
 
 
 class CartViewSet(viewsets.ModelViewSet):
-    queryset = Cart.objects.all()
-    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Ensures the user always has a cart
+        Cart.objects.get_or_create(user=self.request.user)
+        return Cart.objects.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        return CartSerializer
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
 
 
 class CartItemViewSet(viewsets.ModelViewSet):
-    queryset = CartItem.objects.all()
-    serializer_class = CartItemSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Ensures the cart exists before accessing items
+        cart, _ = Cart.objects.get_or_create(user=self.request.user)
+        return CartItem.objects.filter(cart=cart)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AddCartItemSerializer
+        elif self.request.method in ['PUT', 'PATCH']:
+            return UpdateCartItemSerializer
+        return CartItemSerializer
+
+    def get_serializer_context(self):
+        cart, _ = Cart.objects.get_or_create(user=self.request.user)
+        return {'cart_id': cart.id}

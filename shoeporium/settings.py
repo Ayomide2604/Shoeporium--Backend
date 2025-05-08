@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'cloudinary',
     "debug_toolbar",
+    'django_filters',
     'djoser',
     'rest_framework',
 
@@ -141,12 +142,17 @@ INTERNAL_IPS = ["127.0.0.1",]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+
     ),
+
+
+
+
 }
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
