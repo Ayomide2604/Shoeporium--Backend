@@ -179,7 +179,7 @@ CORS_ALLOW_METHODS = (
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "https://shoeporium-frontend.vercel.app/",
+    "https://shoeporium-frontend.vercel.app",
 ]
 
 # Cloudinary settings
