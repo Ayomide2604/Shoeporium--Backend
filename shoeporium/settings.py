@@ -17,10 +17,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['shoeporium-backend.onrender.com']
+ALLOWED_HOSTS = ['shoeporium-backend.onrender.com', '127.0.0.1']
 
 
 # Application definition
@@ -176,8 +177,10 @@ CORS_ALLOW_METHODS = (
     "PUT",
 )
 
-CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://your-production-frontend.com",
+]
 
 # Cloudinary settings
 CLOUDINARY_STORAGE = {
