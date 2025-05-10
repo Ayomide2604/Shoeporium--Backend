@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Product, Collection, Cart, CartItem, ProductImage, Order, OrderItem
 from django.db import transaction
 import cloudinary.uploader
+from accounts.serializers import CustomUserSerializer
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -101,20 +102,31 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     total_price = serializers.SerializerMethodField()
+    user = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'date_created', 'items', 'total_price']
+        fields = ['id', 'date_created', 'items',
+                  'user', 'total_price', 'payment_status']
+        read_only_fields = ['id', 'date_created', 'user']
 
     def get_total_price(self, order):
         return sum([item.price * item.quantity for item in order.items.all()])
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    total_price = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
-        fields = ['id', 'user', 'payment_status', 'date_created']
-        read_only_fields = ['id', 'user', 'payment_status', 'date_created']
+        fields = ['id', 'user', 'payment_status', 'items',
+                  'date_created',  'total_price']
+        read_only_fields = ['id', 'user', 'payment_status', 'items',
+                            'date_created']
+
+    def get_total_price(self, order):
+        return sum([item.price * item.quantity for item in order.items.all()])
 
     def create(self, validated_data):
         user = self.context['request'].user

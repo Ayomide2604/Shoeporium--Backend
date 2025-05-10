@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Collection, Cart, CartItem, ProductImage
+from .models import Product, Collection, Cart, CartItem, ProductImage, Order
 from django.urls import reverse
 from django.utils.html import format_html
 # Register your models here.
@@ -53,3 +53,8 @@ class CartAdmin(admin.ModelAdmin):
 @admin.register(CartItem)
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ['product__name', 'quantity']
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    pass

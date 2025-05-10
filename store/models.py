@@ -69,9 +69,21 @@ class CartItem(models.Model):
 
 
 class Order(models.Model):
+
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
-    payment_status = models.CharField(max_length=20, default="Pending")
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='pending'
+    )
+
     date_created = models.DateTimeField(auto_now_add=True)
 
 

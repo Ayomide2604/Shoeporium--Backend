@@ -7,7 +7,7 @@ from .models import Product, Collection, Cart, CartItem, ProductImage, Order
 from .serializers import CollectionSerializer, ProductSerializer, CartSerializer, CartItemSerializer, ProductImageSerializer, AddCartItemSerializer, UpdateCartItemSerializer, OrderCreateSerializer, OrderSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .pagination import ProductPagination
+from .pagination import BasicPagination
 
 # Create your views here.
 
@@ -27,7 +27,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     ordering_fields = ['price', 'name', 'date_created']
     search_fields = ['name', 'description', 'collection__name']
     ordering = ['-date_created']
-    pagination_class = ProductPagination
+    pagination_class = BasicPagination
 
 
 class ProductImageViewSet(viewsets.ModelViewSet):
@@ -75,11 +75,12 @@ class CartItemViewSet(viewsets.ModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    pagination_class = BasicPagination
 
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-            return Order.objects.all()
+            return Order.objects.order_by('-date_created').all()
         return Order.objects.filter(user=user)
 
     def get_serializer_class(self):
@@ -89,3 +90,9 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         return {'request': self.request}
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        orders = Order.objects.filter(user=request.user).all()
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
